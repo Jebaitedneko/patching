@@ -20,12 +20,12 @@ import sys
 # this plugin requires Python 3
 SUPPORTED_PYTHON = sys.version_info[0] == 3
 
-# this plugin requires IDA 9.2 or newer
+# this plugin requires IDA 7.6 or newer
 try:
     import idaapi
     import ida_pro
     IDA_GLOBAL_SCOPE = sys.modules['__main__']
-    SUPPORTED_IDA = ida_pro.IDA_SDK_VERSION >= 920
+    SUPPORTED_IDA = ida_pro.IDA_SDK_VERSION >= 760
 except:
     SUPPORTED_IDA = False
 
@@ -89,9 +89,9 @@ class PatchingPlugin(idaapi.plugin_t):
         addon = idaapi.addon_info_t()
         addon.id = "github.gaasedelen.patching"
         addon.name = "Patching"
-        addon.producer = "gaasedelen"
+        addon.producer = "Markus Gaasedelen"
         addon.url = "https://github.com/gaasedelen/patching"
-        addon.version = "9.2.0.0"
+        addon.version = "0.3.0.0"
         idaapi.register_addon(addon)
 
         # mark the plugin as loaded
