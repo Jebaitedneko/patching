@@ -1,9 +1,11 @@
 name: Package IDA Plugin 📦
 
-on: push
+on:
+  workflow_dispatch:
 
 jobs:
   package:
+    if: github.actor == 'Jebaitedneko'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
