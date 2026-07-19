@@ -2,36 +2,59 @@ name: Package IDA Plugin 📦
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Keystone release tag to download (e.g., v1)'
+        required: false
+        default: 'v1'
 
 jobs:
   package:
     if: github.actor == 'Jebaitedneko'
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.release_tag || 'v1' }}
+
     steps:
     - uses: actions/checkout@v4
 
-    - name: Download workflow artifact
-      uses: dawidd6/action-download-artifact@v6
-      with:
+    - name: Download and Extract Release Assets
+      run: |
+        for platform in windows-latest ubuntu-latest macos-latest; do
+          echo "⬇️ Downloading artifact_${platform}.zip for tag ${{ env.RELEASE_TAG }}..."
+          curl -sL -o "artifact_${platform}.zip" "https://github.com/Jebaitedneko/keystone/releases/download/${{ env.RELEASE_TAG }}/artifact_${platform}.zip"
 
-        # the target repo for external artifacts (built libs)
-        repo: gaasedelen/keystone
-        branch: master
+          echo "📦 Extracting to artifact_${platform}/..."
+          mkdir -p "artifact_${platform}"
+          unzip -q -o "artifact_${platform}.zip" -d "artifact_${platform}/"
 
-        # token to fetch artifacts from the repo
-        github_token: ${{secrets.KEYSTONE_PATCHING_TOKEN}}
-
-        # which workflow to search for artifacts
-        workflow: python-publish.yml
-        workflow_conclusion: success
+          echo "🧹 Cleaning up zip file..."
+          rm "artifact_${platform}.zip"
+        done
 
     - name: Package distributions
       shell: bash
       run: |
-        mkdir dist && cd dist
-        mkdir win32 && cp -r ../plugins/* ./win32/ && cp -r ../artifact_windows-latest/keystone_win32/* ./win32/patching/keystone && cd ./win32 && zip -r ../patching_win32.zip ./* && cd ..
-        mkdir linux && cp -r ../plugins/* ./linux/ && cp -r ../artifact_ubuntu-latest/keystone_linux/* ./linux/patching/keystone && cd ./linux && zip -r ../patching_linux.zip ./* && cd ..
-        mkdir darwin && cp -r ../plugins/* ./darwin/ && cp -r ../artifact_macos-latest/keystone_darwin/* ./darwin/patching/keystone && cd ./darwin && zip -r ../patching_macos.zip ./* && cd ..
+        mkdir -p dist
+
+        PLATFORMS=(
+          "win32:windows-latest:keystone_win32"
+          "linux:ubuntu-latest:keystone_linux"
+          "darwin:macos-latest:keystone_darwin"
+        )
+
+        for mapping in "${PLATFORMS[@]}"; do
+          IFS=':' read -r dist_folder artifact_folder keystone_subfolder <<< "$mapping"
+
+          echo "🛠️ Packaging $dist_folder..."
+          mkdir -p "dist/$dist_folder/patching/keystone"
+
+          cp -r plugins/* "dist/$dist_folder/"
+
+          cp -r "artifact_${artifact_folder}/${keystone_subfolder}/"* "dist/$dist_folder/patching/keystone/"
+
+          (cd "dist/$dist_folder" && zip -rq "../patching_${dist_folder}.zip" ./*)
+        done
 
     - uses: actions/upload-artifact@v4
       with:
