@@ -47,6 +47,7 @@ class PatchingCore(object):
 
         # IDA UI Hooks
         self._ui_hooks = UIHooks()
+        self._ui_hooks.ready_to_run = self._on_ready_to_run
         self._ui_hooks.hook()
 
         # IDA 'Processor' Hooks
@@ -106,6 +107,8 @@ class PatchingCore(object):
         """
         Load the plugin core.
         """
+        print("[%s] Load() called" % self.PLUGIN_NAME)
+
         if self._is_loaded:
             return
         self._is_loaded = True
@@ -115,6 +118,7 @@ class PatchingCore(object):
 
         # deactivate the plugin if this is an unsupported architecture
         if not self.assembler:
+            print("[%s] Unsupported CPU: %s" % (self.PLUGIN_NAME, ida_ida.inf_get_procname()))
             self._ui_hooks.unhook()
             return
 
@@ -155,6 +159,12 @@ class PatchingCore(object):
         self._idp_hooks.unhook()
         self._unregister_actions()
         self._unload_assembler()
+
+    def _on_ready_to_run(self):
+        """Called when IDA's UI is ready after loading a database."""
+        if not self._is_loaded and ida_nalt.get_input_file_path():
+            self.load()
+        return 0
 
     def _init_assembler(self):
         """
