@@ -40,12 +40,13 @@ class PatchingCore(object):
     PLUGIN_VERSION = '0.3.0'
     PLUGIN_AUTHORS = 'Markus Gaasedelen'
     PLUGIN_DATE    = '2025'
+    _actions_registered = False
 
     def __init__(self, defer_load=False):
+        self._is_loaded = False
 
         # IDA UI Hooks
         self._ui_hooks = UIHooks()
-        self._ui_hooks.ready_to_run = self.load
         self._ui_hooks.hook()
 
         # IDA 'Processor' Hooks
@@ -54,8 +55,7 @@ class PatchingCore(object):
 
         # IDA 'Database' Hooks
         self._idb_hooks = IDBHooks()
-        if ida_kernwin.cvar.batch:
-            self._idb_hooks.auto_empty_finally = self.load
+        self._idb_hooks.auto_empty_finally = self.load
         self._idb_hooks.byte_patched = self._ida_byte_patched
         self._idb_hooks.hook()
 
@@ -91,13 +91,12 @@ class PatchingCore(object):
         if defer_load:
             return
 
-        #
-        # if loading is not being deferred, we have to load the plugin core
-        # now. this is only used for development purposes such as 'hot
-        # reloading' the plugin via the IDA console (DEV)
-        #
-
-        self.load()
+        # If a database is already open and auto-analysis has completed (e.g., hot-reloading),
+        # load the plugin immediately. Otherwise, wait for the `auto_empty_finally` IDB hook
+        # to ensure the database is fully initialized (e.g., processor selected, ROM created).
+        if ida_nalt.get_input_file_path() and ida_auto.auto_is_completed():
+            self.load()
+        # else: wait for auto_empty_finally to call self.load()
 
     #--------------------------------------------------------------------------
     # Initialization / Teardown
@@ -107,6 +106,9 @@ class PatchingCore(object):
         """
         Load the plugin core.
         """
+        if self._is_loaded:
+            return
+        self._is_loaded = True
 
         # attempt to initialize an assembler engine matching the database
         self._init_assembler()
@@ -135,6 +137,11 @@ class PatchingCore(object):
         Unload the plugin core.
         """
         self._idb_hooks.unhook()
+        self._ui_hooks.unhook()
+
+        if not self._is_loaded:
+            return
+        self._is_loaded = False
 
         if not self.assembler:
             return
@@ -145,9 +152,7 @@ class PatchingCore(object):
             ida_kernwin.unregister_timer(self._refresh_timer)
             self._refresh_timer = None
 
-        self._idb_hooks.unhook()
         self._idp_hooks.unhook()
-        self._ui_hooks.unhook()
         self._unregister_actions()
         self._unload_assembler()
 
@@ -215,6 +220,9 @@ class PatchingCore(object):
         """
         Initialize all IDA plugin actions.
         """
+        if PatchingCore._actions_registered:
+            return
+        PatchingCore._actions_registered = True
 
         # initialize new actions provided by this plugin
         for action in PLUGIN_ACTIONS:
@@ -256,6 +264,10 @@ class PatchingCore(object):
         """
         Remove all plugin actions registered with IDA.
         """
+        if not PatchingCore._actions_registered:
+            return
+        PatchingCore._actions_registered = False
+
         for action in PLUGIN_ACTIONS:
 
             # fetch icon ID before we unregister the current action
