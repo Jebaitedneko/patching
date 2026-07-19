@@ -90,7 +90,7 @@ class PatchingPlugin(idaapi.plugin_t):
         addon.id = "github.gaasedelen.patching"
         addon.name = "Patching"
         addon.producer = "Markus Gaasedelen"
-        addon.url = "https://github.com/gaasedelen/patching"
+        addon.url = "https://github.com/Jebaitedneko/patching"
         addon.version = "0.3.0.0"
         idaapi.register_addon(addon)
 

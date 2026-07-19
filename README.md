@@ -6,7 +6,7 @@
 
 Patching assembly code to change the behavior of an existing program is not uncommon in malware analysis, software reverse engineering, and broader domains of security research. This project extends the popular [IDA Pro](https://www.hex-rays.com/products/ida/) disassembler to create a more robust interactive binary patching workflow designed for rapid iteration.
 
-This project is currently powered by a minor [fork](https://github.com/gaasedelen/keystone) of the ubiquitous [Keystone Engine](https://github.com/keystone-engine/keystone), supporting x86/x64 and Arm/Arm64 patching with plans to enable the remaining Keystone architectures in a future release.
+This project is currently powered by a minor [fork](https://github.com/Jebaitedneko/keystone) of the ubiquitous [Keystone Engine](https://github.com/keystone-engine/keystone), supporting x86/x64 and Arm/Arm64 patching with plans to enable the remaining Keystone architectures in a future release.
 
 Special thanks to [Hex-Rays](https://hex-rays.com/) for supporting the development of this plugin.
 
@@ -39,7 +39,7 @@ import urllib.request as r; exec(r.urlopen('https://github.com/Jebaitedneko/patc
 
 ## Manual Install
 
-Alternatively, the plugin can be manually installed by downloading the distributable plugin package for your respective platform from the [releases](https://github.com/gaasedelen/patching/releases) page and unzipping it to your plugins folder.
+Alternatively, the plugin can be manually installed by downloading the distributable plugin package for your respective platform from the [releases](https://github.com/Jebaitedneko/patching/releases) page and unzipping it to your plugins folder.
 
 It is __*strongly*__ recommended you install this plugin into IDA's user plugin directory:
 
