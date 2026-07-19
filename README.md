@@ -28,13 +28,13 @@ Run the following line in the IDA console to automatically install the plugin:
 ### Windows / Linux
 
 ```python
-import urllib.request as r; exec(r.urlopen('https://github.com/gaasedelen/patching/raw/main/install.py').read())
+import urllib.request as r; exec(r.urlopen('https://github.com/Jebaitedneko/patching/raw/main/install.py').read())
 ```
 
 ### macOS
 
 ```python
-import urllib.request as r; exec(r.urlopen('https://github.com/gaasedelen/patching/raw/main/install.py', cafile='/etc/ssl/cert.pem').read())
+import urllib.request as r; exec(r.urlopen('https://github.com/Jebaitedneko/patching/raw/main/install.py', cafile='/etc/ssl/cert.pem').read())
 ```
 
 ## Manual Install
